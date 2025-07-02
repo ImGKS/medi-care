@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SearchForm from "@/components/SearchForm";
-import ServiceCard, {
-  ServiceProvider,
-  mockServiceProviders,
-} from "@/components/ServiceCard";
+import ServiceCard, { ServiceProvider } from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Filter, ArrowUpDown, MapPin, Clock } from "lucide-react";
+import {
+  AlertCircle,
+  Filter,
+  ArrowUpDown,
+  MapPin,
+  Clock,
+  Globe,
+} from "lucide-react";
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
@@ -30,18 +34,28 @@ export default function SearchResults() {
   const searchServices = async (serviceQuery: string, cityQuery: string) => {
     setIsLoading(true);
 
-    // Simulate API call - in real app, this would be an actual API call
-    setTimeout(() => {
-      // Filter mock data based on search parameters
-      const filtered = mockServiceProviders.filter(
-        (provider) =>
-          provider.service.toLowerCase().includes(serviceQuery.toLowerCase()) &&
-          provider.city.toLowerCase().includes(cityQuery.toLowerCase()),
-      );
+    try {
+      // Call the real API with web scraping
+      const searchParams = new URLSearchParams({
+        service: serviceQuery,
+        city: cityQuery,
+      });
 
-      setProviders(filtered);
+      const response = await fetch(`/api/search-services?${searchParams}`);
+
+      if (!response.ok) {
+        throw new Error("Search failed");
+      }
+
+      const data = await response.json();
+      setProviders(data.providers || []);
+    } catch (error) {
+      console.error("Error searching services:", error);
+      // Fallback to empty array or show error
+      setProviders([]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const sortProviders = (providers: ServiceProvider[], sortBy: string) => {
@@ -151,6 +165,20 @@ export default function SearchResults() {
                   className="h-64 bg-muted animate-pulse rounded-lg"
                 />
               ))}
+            </div>
+          )}
+
+          {/* Data Source Info */}
+          {!isLoading && sortedProviders.length > 0 && (
+            <div className="mb-4">
+              <Alert>
+                <Globe className="h-4 w-4" />
+                <AlertDescription>
+                  Results are scraped from multiple sources including Google
+                  Search and JustDial. Data is refreshed in real-time to provide
+                  you with the most current information.
+                </AlertDescription>
+              </Alert>
             </div>
           )}
 

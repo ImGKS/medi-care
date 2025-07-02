@@ -25,6 +25,7 @@ export interface ServiceProvider {
   verified: boolean;
   description: string;
   mapUrl?: string;
+  source?: string;
 }
 
 interface ServiceCardProps {
@@ -107,6 +108,11 @@ export default function ServiceCard({ provider }: ServiceCardProps) {
           {provider.verified && (
             <Badge variant="default" className="text-xs">
               Verified
+            </Badge>
+          )}
+          {provider.source && (
+            <Badge variant="outline" className="text-xs">
+              {provider.source}
             </Badge>
           )}
         </div>

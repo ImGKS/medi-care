@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
+import { searchMedicalServices } from "./routes/search-services";
 
 export function createServer() {
   const app = express();
@@ -16,6 +17,9 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Medical services search API
+  app.get("/api/search-services", searchMedicalServices);
 
   return app;
 }
