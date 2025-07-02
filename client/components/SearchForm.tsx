@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, MapPin, Stethoscope } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, MapPin, Stethoscope, Train } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchFormProps {
@@ -17,6 +18,7 @@ export default function SearchForm({
 }: SearchFormProps) {
   const [service, setService] = useState("");
   const [city, setCity] = useState("");
+  const [onTrain, setOnTrain] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -31,6 +33,10 @@ export default function SearchForm({
       service: service.trim(),
       city: city.trim(),
     });
+
+    if (onTrain) {
+      searchParams.set("onTrain", "true");
+    }
 
     // Simulate loading time for better UX
     setTimeout(() => {
