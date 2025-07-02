@@ -12,6 +12,7 @@ import {
   MapPin,
   Clock,
   Globe,
+  Train,
 } from "lucide-react";
 
 export default function SearchResults() {
@@ -24,6 +25,7 @@ export default function SearchResults() {
 
   const service = searchParams.get("service");
   const city = searchParams.get("city");
+  const onTrain = searchParams.get("onTrain") === "true";
 
   useEffect(() => {
     if (service && city) {
@@ -36,12 +38,16 @@ export default function SearchResults() {
 
     try {
       // Call the real API with web scraping
-      const searchParams = new URLSearchParams({
+      const apiParams = new URLSearchParams({
         service: serviceQuery,
         city: cityQuery,
       });
 
-      const response = await fetch(`/api/search-services?${searchParams}`);
+      if (onTrain) {
+        apiParams.set("onTrain", "true");
+      }
+
+      const response = await fetch(`/api/search-services?${apiParams}`);
 
       if (!response.ok) {
         throw new Error("Search failed");
@@ -97,9 +103,16 @@ export default function SearchResults() {
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
             Medical Services in {city}
+            {onTrain && (
+              <span className="inline-flex items-center gap-1 ml-3 text-lg bg-primary/10 text-primary px-3 py-1 rounded-full">
+                <Train className="h-4 w-4" />
+                Train Delivery
+              </span>
+            )}
           </h1>
           <p className="text-muted-foreground mb-6">
             Showing results for "{service}" in {city}
+            {onTrain && " with train delivery service"}
           </p>
 
           {/* Search Form */}

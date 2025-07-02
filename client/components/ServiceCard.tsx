@@ -8,6 +8,7 @@ import {
   Star,
   Navigation,
   CheckCircle,
+  Train,
 } from "lucide-react";
 
 export interface ServiceProvider {
@@ -26,6 +27,7 @@ export interface ServiceProvider {
   description: string;
   mapUrl?: string;
   source?: string;
+  trainDelivery?: boolean;
 }
 
 interface ServiceCardProps {
@@ -100,13 +102,22 @@ export default function ServiceCard({ provider }: ServiceCardProps) {
 
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
+          {provider.trainDelivery && (
+            <Badge
+              variant="default"
+              className="text-xs bg-green-600 hover:bg-green-700 gap-1"
+            >
+              <Train className="h-3 w-3" />
+              Train Delivery
+            </Badge>
+          )}
           {provider.isAvailable24x7 && (
             <Badge variant="secondary" className="text-xs">
               24/7 Available
             </Badge>
           )}
           {provider.verified && (
-            <Badge variant="default" className="text-xs">
+            <Badge variant="outline" className="text-xs">
               Verified
             </Badge>
           )}

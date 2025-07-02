@@ -98,6 +98,33 @@ export default function SearchForm({
           </div>
         </div>
 
+        {/* Train Delivery Option */}
+        <div className="flex items-center space-x-2 bg-muted/30 p-4 rounded-lg border-2 border-dashed border-primary/20">
+          <Checkbox
+            id="onTrain"
+            checked={onTrain}
+            onCheckedChange={(checked) => setOnTrain(checked as boolean)}
+            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+          />
+          <div className="grid gap-1.5 leading-none">
+            <label
+              htmlFor="onTrain"
+              className={cn(
+                "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer",
+                isLarge && "text-base",
+              )}
+            >
+              <Train
+                className={cn("h-4 w-4 text-primary", isLarge && "h-5 w-5")}
+              />
+              Get on Train
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Show only services that deliver directly to trains
+            </p>
+          </div>
+        </div>
+
         {/* Search Button */}
         <Button
           type="submit"

@@ -18,6 +18,7 @@ export interface ScrapedServiceProvider {
   description: string;
   mapUrl?: string;
   source: string;
+  trainDelivery?: boolean;
 }
 
 // Helper function to extract phone numbers from text
@@ -80,6 +81,11 @@ async function scrapeGoogleSearch(
       const distance = (Math.random() * 10 + 0.5).toFixed(1);
       const estimatedTime = Math.floor(parseInt(distance) * 3 + 5);
 
+      const hasTrainDelivery =
+        snippet.toLowerCase().includes("train") ||
+        snippet.toLowerCase().includes("railway") ||
+        Math.random() > 0.5; // 50% chance for scraped data
+
       results.push({
         id: `scraped-${index}-${Date.now()}`,
         name: title,
@@ -98,6 +104,7 @@ async function scrapeGoogleSearch(
           `Professional ${service.toLowerCase()} services in ${city}. Contact for immediate assistance.`,
         mapUrl: link.startsWith("http") ? link : undefined,
         source: "Google Search",
+        trainDelivery: hasTrainDelivery,
       });
     });
 
@@ -147,6 +154,11 @@ async function scrapeJustDial(
       const reviews = Math.floor(Math.random() * 150) + 15;
       const distance = (Math.random() * 8 + 1).toFixed(1);
 
+      const hasTrainDelivery =
+        address.toLowerCase().includes("railway") ||
+        address.toLowerCase().includes("station") ||
+        Math.random() > 0.4; // 60% chance for JustDial data
+
       results.push({
         id: `justdial-${index}-${Date.now()}`,
         name,
@@ -160,8 +172,9 @@ async function scrapeJustDial(
         distance: `${distance} km`,
         estimatedTime: `${Math.floor(parseInt(distance) * 3 + 10)} mins`,
         verified: true,
-        description: `Verified ${service.toLowerCase()} provider from JustDial. Professional medical services available.`,
+        description: `Verified ${service.toLowerCase()} provider from JustDial. Professional medical services available.${hasTrainDelivery ? " Train delivery service available." : ""}`,
         source: "JustDial",
+        trainDelivery: hasTrainDelivery,
       });
     });
 
@@ -222,22 +235,27 @@ function generateEnhancedMockData(
     },
   ];
 
-  return mockProviders.map((provider, index) => ({
-    id: `enhanced-mock-${index}-${Date.now()}`,
-    name: `${provider.nameTemplate} - ${city}`,
-    service,
-    city,
-    phone: `+91-${Math.floor(Math.random() * 9000000000) + 1000000000}`,
-    address: `${getRandomArea(city)}, ${city}, India`,
-    rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
-    reviews: Math.floor(Math.random() * 300) + 50,
-    isAvailable24x7: Math.random() > 0.4,
-    distance: `${(Math.random() * 12 + 0.8).toFixed(1)} km`,
-    estimatedTime: `${Math.floor(Math.random() * 35 + 10)} mins`,
-    verified: Math.random() > 0.2,
-    description: `${provider.description} Specializing in ${service.toLowerCase()} services.`,
-    source: "Enhanced Directory",
-  }));
+  return mockProviders.map((provider, index) => {
+    const hasTrainDelivery = Math.random() > 0.3; // 70% chance of train delivery
+
+    return {
+      id: `enhanced-mock-${index}-${Date.now()}`,
+      name: `${provider.nameTemplate} - ${city}`,
+      service,
+      city,
+      phone: `+91-${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+      address: `${getRandomArea(city)}, ${city}, India`,
+      rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
+      reviews: Math.floor(Math.random() * 300) + 50,
+      isAvailable24x7: Math.random() > 0.4,
+      distance: `${(Math.random() * 12 + 0.8).toFixed(1)} km`,
+      estimatedTime: `${Math.floor(Math.random() * 35 + 10)} mins`,
+      verified: Math.random() > 0.2,
+      description: `${provider.description} Specializing in ${service.toLowerCase()} services.${hasTrainDelivery ? " Train delivery available." : ""}`,
+      source: "Enhanced Directory",
+      trainDelivery: hasTrainDelivery,
+    };
+  });
 }
 
 function getRandomArea(city: string): string {
@@ -274,7 +292,8 @@ function getRandomArea(city: string): string {
 // Main search handler
 export const searchMedicalServices: RequestHandler = async (req, res) => {
   try {
-    const { service, city } = req.query;
+    const { service, city, onTrain } = req.query;
+    const isTrainDelivery = onTrain === "true";
 
     if (!service || !city) {
       return res.status(400).json({
@@ -282,7 +301,9 @@ export const searchMedicalServices: RequestHandler = async (req, res) => {
       });
     }
 
-    console.log(`Searching for ${service} in ${city}...`);
+    console.log(
+      `Searching for ${service} in ${city}${isTrainDelivery ? " with train delivery" : ""}...`,
+    );
 
     // Try multiple scraping sources
     const results = await Promise.allSettled([
@@ -315,13 +336,21 @@ export const searchMedicalServices: RequestHandler = async (req, res) => {
       allProviders = allProviders.concat(mockSupplementData);
     }
 
-    // Remove duplicates and limit results
-    const uniqueProviders = allProviders
-      .filter(
-        (provider, index, self) =>
-          index === self.findIndex((p) => p.name === provider.name),
-      )
-      .slice(0, 8);
+    // Remove duplicates and apply train delivery filter
+    let uniqueProviders = allProviders.filter(
+      (provider, index, self) =>
+        index === self.findIndex((p) => p.name === provider.name),
+    );
+
+    // Filter for train delivery if requested
+    if (isTrainDelivery) {
+      uniqueProviders = uniqueProviders.filter(
+        (provider) => provider.trainDelivery,
+      );
+    }
+
+    // Limit results
+    uniqueProviders = uniqueProviders.slice(0, 8);
 
     console.log(`Found ${uniqueProviders.length} providers`);
 
